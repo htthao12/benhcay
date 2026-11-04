@@ -1,4 +1,6 @@
-# File nén lớn (GitHub giới hạn file < 100MB)
+# Dữ liệu ảnh lớn (GitHub giới hạn file < 100MB)
+data/raw/
+data/processed/
 *.zip
 plant_disease_colab.zip
 trained_weights_and_results.zip
