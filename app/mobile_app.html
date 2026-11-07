@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Phenikaa Plant Disease AI — Mobile Real-time Stream</title>
+  <!-- ONNX Runtime Web de ho tro chay truc tiep mo hinh .onnx ngay tren dien thoai -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/ort.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(15, 23, 42, 0.90);
+      --border-glass: rgba(148, 163, 184, 0.24);
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-blue: #38bdf8;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR: THONG TIN MO HINH & ACC TREN TAP TEST */
+    .top-bar {
+      background: rgba(9, 13, 22, 0.96);
+      border-bottom: 1px solid var(--border-glass);
+      padding: 10px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* MODEL SELECTOR & BENCHMARK STATS BAR */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+      align-items: center;
+    }
+    .model-select {
+      width: 100%;
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+    }
+    .mode-btn {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .mode-btn.ondevice {
+      background: rgba(16, 185, 129, 0.22);
+      color: #34d399;
+      border-color: #10b981;
+    }
+
+    .model-metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .metric-chip {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--border-glass);
+      border-radius: 7px;
+      padding: 4px 6px;
+      text-align: center;
+    }
+    .metric-chip .lbl {
+      font-size: 9.5px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+    .metric-chip .val {
+      font-size: 12px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+    .metric-chip.gold .val {
+      color: #fbbf24;
+    }
+
+    /* VIEWFINDER CAMERA CONTAINER */
+    .viewfinder-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      background: #000;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-glass);
+    }
+    video#cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    img#uploadedPreview {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+      background: #000;
+    }
+    canvas#overlayCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* FLOATING HUD ON CAMERA */
+    .hud-top-left {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(9, 13, 22, 0.82);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border-glass);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #34d399;
+      z-index: 15;
+    }
+    .hud-actions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+      z-index: 20;
+    }
+    .cam-btn {
+      background: rgba(15, 23, 42, 0.88);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    .cam-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* LIVE PREDICTION BANNER ON PHONE */
+    .main-content {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 10px 12px 28px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .diagnosis-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-green);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .diagnosis-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .disease-title {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #fff;
+    }
+    .acc-badge {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1.5px solid #10b981;
+      color: #34d399;
+      font-size: 15px;
+      font-weight: 900;
+      padding: 5px 10px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .sub-status {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* GRAD-CAM & GRAD-CAM++ 3 COLUMNS ON MOBILE */
+    .xai-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .section-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+    .xai-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .xai-item {
+      text-align: center;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      padding: 5px;
+    }
+    .xai-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+      background: #111827;
+    }
+    .xai-item span {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    /* TREATMENT DSS & PROBABILITY BARS */
+    .dss-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .dss-text {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #e2e8f0;
+      white-space: pre-line;
+    }
+    .prob-row {
+      margin-bottom: 6px;
+    }
+    .prob-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+    .prob-track {
+      width: 100%;
+      height: 7px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      border-radius: 999px;
+      transition: width 0.18s ease;
+    }
+
+    /* COMPARISON TABLE MODAL ON PHONE */
+    .cmp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .cmp-table th, .cmp-table td {
+      border: 1px solid var(--border-glass);
+      padding: 6px 5px;
+      text-align: center;
+    }
+    .cmp-table th {
+      background: rgba(30, 41, 59, 0.9);
+      color: #38bdf8;
+    }
+    .cmp-table tr.best-row {
+      background: rgba(16, 185, 129, 0.16);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR: CHON MO HINH & HIEN THI TEST ACCURACY / MACRO-F1 -->
+  <div class="top-bar">
+    <div class="brand-row">
+      <div class="brand-title">🌿 PHENIKAA PLANT DISEASE AI</div>
+      <div class="live-pill">
+        <span class="live-dot"></span>
+        <span id="streamStatusText">LIVE STREAM</span>
+      </div>
+    </div>
+
+    <div class="controls-grid">
+      <select id="modelSelect" class="model-select" onchange="onModelChange()">
+        <option value="se_resnet18">🏆 SE-ResNet-18 (Best — Test Acc: 98.22% | F1: 0.9821)</option>
+        <option value="dscnet">⚡ DSCNet Siêu Nhẹ (Test Acc: 97.52% | F1: 0.9750)</option>
+        <option value="resnet18">🔥 ResNet-18 Bottleneck (Test Acc: 97.40% | F1: 0.9738)</option>
+      </select>
+      <button id="execModeBtn" class="mode-btn" onclick="toggleExecutionMode()">
+        🌐 Server + Grad-CAM++
+      </button>
+    </div>
+
+    <!-- 4 CHI SO CHUAN CUA MO HINH HIEN TAI TREN DIEN THOAI -->
+    <div class="model-metrics-strip">
+      <div class="metric-chip gold">
+        <div class="lbl">Test Top-1 Acc</div>
+        <div class="val" id="hdrTestAcc">98.22%</div>
+      </div>
+      <div class="metric-chip gold">
+        <div class="lbl">Test Macro-F1</div>
+        <div class="val" id="hdrTestF1">0.9821</div>
+      </div>
+      <div class="metric-chip">
+        <div class="lbl">Tham số (Params)</div>
+        <div class="val" id="hdrParams">128.6K</div>
+      </div>
+      <div class="metric-chip">
+        <div class="lbl">Độ trễ (Latency)</div>
+        <div class="val" id="hdrLatency">-- ms</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMERA VIEWFINDER -->
+  <div class="viewfinder-wrap">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <img id="uploadedPreview" alt="Uploaded Leaf" />
+    <canvas id="overlayCanvas"></canvas>
+
+    <div class="hud-top-left" id="fpsHud">⚡ Đang kết nối mô hình AI...</div>
+
+    <div class="hud-actions">
+      <button class="cam-btn" onclick="captureAndAnalyzeNow()">📸 Chẩn đoán ngay</button>
+      <button class="cam-btn" onclick="switchCamera()">🔄 Đổi Cam</button>
+      <button class="cam-btn" id="pauseBtn" onclick="togglePause()">⏸ Tạm dừng</button>
+      <label class="cam-btn" style="cursor:pointer;">
+        📁 Tải Ảnh
+        <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileUpload(event)" />
+      </label>
+    </div>
+  </div>
+
+  <canvas id="captureCanvas" style="display:none;"></canvas>
+
+  <!-- KET QUA CHAN DOAN THOI GIAN THUC TREN DIEN THOAI -->
+  <div class="main-content">
+    <div class="diagnosis-card" id="diagCard">
+      <div class="diagnosis-header">
+        <div>
+          <div class="disease-title" id="diseaseName">Đang nhận diện lá cây...</div>
+          <div class="sub-status" id="diseaseSub">Hướng camera vào phiến lá cây cảnh để xem kết quả</div>
+        </div>
+        <div class="acc-badge" id="liveAccBadge">--%</div>
+      </div>
+    </div>
+
+    <!-- 3 COT: ANH DAU VAO (224x224) | GRAD-CAM | GRAD-CAM++ -->
+    <div class="xai-card">
+      <div class="section-hdr">
+        <span>🔍 Giải thích Mô hình (Grad-CAM &amp; Grad-CAM++)</span>
+        <label style="font-size:11px; color:#cbd5e1; display:flex; align-items:center; gap:4px;">
+          <input type="checkbox" id="xaiToggle" checked /> Cập nhật Live XAI
+        </label>
+      </div>
+      <div class="xai-grid">
+        <div class="xai-item">
+          <img id="imgOrig224" alt="Input 224x224" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+          <span>1. Lá Đầu Vào (224×224)</span>
+        </div>
+        <div class="xai-item">
+          <img id="imgGradCam" alt="Grad-CAM" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+          <span>2. Bản Đồ Grad-CAM</span>
+        </div>
+        <div class="xai-item">
+          <img id="imgGradCamPP" alt="Grad-CAM++" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" />
+          <span>3. Bản Đồ Grad-CAM++</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHAC DO DIEU TRI NONG NGHIEP (DSS) -->
+    <div class="dss-card">
+      <div class="section-hdr">🩺 Phác đồ điều trị khuyến nghị (DSS)</div>
+      <div class="dss-text" id="dssContent">Đang phân tích luồng hình ảnh từ camera...</div>
+    </div>
+
+    <!-- XAC SUAT 7 LOP BENH -->
+    <div class="dss-card">
+      <div class="section-hdr">📊 Phân phối Độ chính xác / Xác suất 7 Lớp Bệnh</div>
+      <div id="probBarsContainer"></div>
+    </div>
+
+    <!-- BANG DOI SANH 3 MO HINH TREN TAP TEST -->
+    <div class="dss-card">
+      <div class="section-hdr">🏆 Bảng Đối sánh 3 Mô hình đã học trên Tập Test (1,575 ảnh)</div>
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th>Mô hình</th>
+            <th>Tham số</th>
+            <th>Test Top-1 Acc</th>
+            <th>Test Top-3 Acc</th>
+            <th>Macro-F1</th>
+            <th>CPU FPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best-row">
+            <td>🏆 SE-ResNet-18</td>
+            <td>128,599</td>
+            <td>98.22%</td>
+            <td>99.94%</td>
+            <td>0.9821</td>
+            <td>494.0</td>
+          </tr>
+          <tr>
+            <td>⚡ DSCNet</td>
+            <td>53,055</td>
+            <td>97.52%</td>
+            <td>99.30%</td>
+            <td>0.9750</td>
+            <td>367.8</td>
+          </tr>
+          <tr>
+            <td>🔥 ResNet-18</td>
+            <td>120,279</td>
+            <td>97.40%</td>
+            <td>99.62%</td>
+            <td>0.9738</td>
+            <td>554.8</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const MODEL_BENCHMARKS = {
+      se_resnet18: { name: "SE-ResNet-18", top1: "98.22%", top3: "99.94%", f1: "0.9821", params: "128.6K" },
+      dscnet:      { name: "DSCNet",       top1: "97.52%", top3: "99.30%", f1: "0.9750", params: "53.1K"  },
+      resnet18:    { name: "ResNet-18",    top1: "97.40%", top3: "99.62%", f1: "0.9738", params: "120.3K" }
+    };
+
+    const CLASS_LIST = [
+      "Anthracnose",
+      "Aphids",
+      "Healthy",
+      "Powdery_Mildew",
+      "Rust",
+      "Scorch_Sunburn",
+      "Yellowing_Wilt"
+    ];
+
+    const VIET_DISEASE_MAP = {
+      Anthracnose:    { name: "Bệnh Thán thư", status: "Bệnh Thán thư (Nấm Colletotrichum)", color: "red", advice: "1. Ngừng phun nước trực tiếp lên tán lá để tránh phát tán bào tử nấm.\n2. Cắt tỉa vùng lá bị cháy đốm lõm.\n3. Phun thuốc đặc trị thán thư: Antracol 70WP, Mancozeb hoặc Ridomil Gold." },
+      Aphids:         { name: "Rệp vừng / Sâu hại", status: "Rệp vừng / Rệp muội chích hút (Aphids)", color: "red", advice: "1. Dùng vòi nước xịt rửa mạnh vào ngọn non để rệp rơi ra.\n2. Phun dung dịch nước rửa chén loãng hoặc tinh dầu Neem diệt rệp sinh học.\n3. Nếu mật độ quá cao: Phun thuốc trừ sâu sinh học thảo mộc hoặc Confidor." },
+      Healthy:        { name: "Lá khỏe mạnh", status: "Cây khỏe mạnh (Healthy)", color: "green", advice: "Duy trì chế độ tưới nước và chăm sóc bình thường. Không cần can thiệp hóa chất." },
+      Powdery_Mildew: { name: "Bệnh Phấn trắng", status: "Bệnh Phấn trắng (Nấm Erysiphales)", color: "orange", advice: "1. Tỉa bớt cành lá rậm rạp để cây thông thoáng quang hợp.\n2. Phun dung dịch Baking Soda loãng (5g/lít nước) hoặc chế phẩm sinh học gốc lưu huỳnh.\n3. Tránh tưới nước đọng lên mặt lá vào chiều tối." },
+      Rust:           { name: "Bệnh Rỉ sắt", status: "Bệnh Rỉ sắt (Nấm Pucciniales)", color: "red", advice: "1. Vặt bỏ và tiêu hủy các lá có ổ mụn phấn màu vàng cam.\n2. Phun luân phiên thuốc trừ nấm gốc Đồng (Boóc-đô) hoặc Difenoconazole / Hexaconazole (Anvil).\n3. Đặt cây ở nơi có nắng sáng tốt." },
+      Scorch_Sunburn: { name: "Cháy nắng / Táp lá", status: "Cháy nắng / Khô viền mép lá (Scorch)", color: "orange", advice: "1. Chuyển cây vào vị trí râm mát, có mái che lưới lan.\n2. Bổ sung độ ẩm không khí xung quanh, tưới nước vào sáng sớm.\n3. Cắt bỏ viền lá khô giòn để giữ thẩm mỹ." },
+      Yellowing_Wilt: { name: "Vàng lá / Úng rễ", status: "Vàng lá / Ứ đọng úng nước rễ (Yellowing)", color: "orange", advice: "1. Ngừng tưới nước ngay lập tức, kiểm tra lỗ thoát nước dưới đáy chậu.\n2. Xới nhẹ đất mặt cho rễ thoáng khí.\n3. Nếu đất quá ướt sũng: Thay đất mới tơi xốp hơn." }
+    };
+
+    const video = document.getElementById("cameraVideo");
+    const uploadedPreview = document.getElementById("uploadedPreview");
+    const overlayCanvas = document.getElementById("overlayCanvas");
+    const overlayCtx = overlayCanvas.getContext("2d");
+    const captureCanvas = document.getElementById("captureCanvas");
+    const captureCtx = captureCanvas.getContext("2d", { willReadFrequently: true });
+
+    let currentFacingMode = "environment";
+    let isPaused = false;
+    let isUploadMode = false;
+    let isProcessing = false;
+    let executionMode = "server"; // "server" | "ondevice"
+    let ortSessions = {};
+    let frameCounter = 0;
+    let streamTimer = null;
+
+    function updateModelHeaderUI() {
+      const mKey = document.getElementById("modelSelect").value;
+      const info = MODEL_BENCHMARKS[mKey] || MODEL_BENCHMARKS.se_resnet18;
+      document.getElementById("hdrTestAcc").innerText = info.top1;
+      document.getElementById("hdrTestF1").innerText = info.f1;
+      document.getElementById("hdrParams").innerText = info.params;
+    }
+
+    async function onModelChange() {
+      updateModelHeaderUI();
+      if (executionMode === "ondevice") {
+        await ensureOnDeviceSession(document.getElementById("modelSelect").value);
+      }
+      if (isUploadMode && uploadedPreview.src) {
+        processCurrentImageSource(uploadedPreview, true);
+      } else {
+        captureAndAnalyzeNow();
+      }
+    }
+
+    async function toggleExecutionMode() {
+      const btn = document.getElementById("execModeBtn");
+      if (executionMode === "server") {
+        executionMode = "ondevice";
+        btn.className = "mode-btn ondevice";
+        btn.innerText = "📱 Đang nạp ONNX...";
+        const ok = await ensureOnDeviceSession(document.getElementById("modelSelect").value);
+        if (ok) {
+          btn.innerText = "📱 On-Device ONNX";
+          document.getElementById("streamStatusText").innerText = "ON-DEVICE AI";
+        } else {
+          executionMode = "server";
+          btn.className = "mode-btn";
+          btn.innerText = "🌐 Server + Grad-CAM++";
+        }
+      } else {
+        executionMode = "server";
+        btn.className = "mode-btn";
+        btn.innerText = "🌐 Server + Grad-CAM++";
+        document.getElementById("streamStatusText").innerText = "LIVE STREAM";
+      }
+    }
+
+    async function ensureOnDeviceSession(modelKey) {
+      if (ortSessions[modelKey]) return true;
+      try {
+        const onnxUrl = `/onnx/${modelKey}.onnx`;
+        ortSessions[modelKey] = await ort.InferenceSession.create(onnxUrl, {
+          executionProviders: ["wasm"]
+        });
+        return true;
+      } catch (err) {
+        console.error("Không thể nạp ONNX trên trình duyệt:", err);
+        alert("Trình duyệt không nạp được ONNX WebAssembly, chuyển về chế độ Server AI.");
+        return false;
+      }
+    }
+
+    function syncCanvasSizeWithVideo() {
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 480;
+      if (captureCanvas.width !== vw || captureCanvas.height !== vh) {
+        captureCanvas.width = vw;
+        captureCanvas.height = vh;
+        overlayCanvas.width = vw;
+        overlayCanvas.height = vh;
+      }
+    }
+
+    function startContinuousStreamEngine() {
+      if (streamTimer) clearInterval(streamTimer);
+      // Vong lap dinh ky 180ms dam bao gui frame lien tuc tren moi trinh duyet iOS Safari / Android Chrome
+      streamTimer = setInterval(async () => {
+        if (isPaused || isUploadMode || isProcessing) return;
+        if (video.readyState >= 2 && (video.videoWidth > 0 || video.clientWidth > 0)) {
+          isProcessing = true;
+          try {
+            syncCanvasSizeWithVideo();
+            frameCounter++;
+            const wantGradcam = document.getElementById("xaiToggle").checked && (frameCounter % 2 === 1);
+            await processCurrentImageSource(video, wantGradcam);
+          } catch (e) {
+            console.error("Stream step error:", e);
+          } finally {
+            isProcessing = false;
+          }
+        }
+      }, 180);
+    }
+
+    async function captureAndAnalyzeNow() {
+      if (isUploadMode && uploadedPreview.src) {
+        await processCurrentImageSource(uploadedPreview, true);
+        return;
+      }
+      if (video.readyState >= 2) {
+        syncCanvasSizeWithVideo();
+        await processCurrentImageSource(video, true);
+      }
+    }
+
+    async function startCamera() {
+      isUploadMode = false;
+      isPaused = false;
+      uploadedPreview.style.display = "none";
+      video.style.display = "block";
+
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        });
+
+        // Gan su kien TRUOC khi goi video.play() de khong bao gio bi bo lo tren Safari/Chrome
+        video.onloadedmetadata = () => {
+          syncCanvasSizeWithVideo();
+          startContinuousStreamEngine();
+        };
+
+        video.srcObject = stream;
+        await video.play();
+        syncCanvasSizeWithVideo();
+        startContinuousStreamEngine();
+      } catch (err) {
+        console.error("Camera error:", err);
+        document.getElementById("diseaseName").innerText = "Chưa cấp quyền Camera hoặc kết nối HTTP";
+        document.getElementById("diseaseSub").innerText = "Hãy dùng link HTTPS (Cloudflare) trên iPhone hoặc bấm nút '📁 Tải Ảnh' để chẩn đoán!";
+      }
+    }
+
+    function switchCamera() {
+      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+      startCamera();
+    }
+
+    function togglePause() {
+      if (isUploadMode) {
+        isPaused = false;
+        document.getElementById("pauseBtn").innerText = "⏸ Tạm dừng";
+        startCamera();
+        return;
+      }
+      isPaused = !isPaused;
+      document.getElementById("pauseBtn").innerText = isPaused ? "▶ Tiếp tục" : "⏸ Tạm dừng";
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        isUploadMode = true;
+        isPaused = true;
+        document.getElementById("pauseBtn").innerText = "📷 Bật lại Cam";
+        video.style.display = "none";
+        uploadedPreview.style.display = "block";
+        uploadedPreview.onload = () => {
+          captureCanvas.width = uploadedPreview.naturalWidth || 640;
+          captureCanvas.height = uploadedPreview.naturalHeight || 480;
+          overlayCanvas.width = captureCanvas.width;
+          overlayCanvas.height = captureCanvas.height;
+          processCurrentImageSource(uploadedPreview, true);
+        };
+        uploadedPreview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function processCurrentImageSource(sourceElem, includeGradcam) {
+      const w = captureCanvas.width || 640;
+      const h = captureCanvas.height || 480;
+      captureCtx.drawImage(sourceElem, 0, 0, w, h);
+      const modelKey = document.getElementById("modelSelect").value;
+
+      if (executionMode === "ondevice" && ortSessions[modelKey]) {
+        await runOnDeviceInference(modelKey, w, h);
+      } else {
+        await runServerInference(modelKey, includeGradcam);
+      }
+    }
+
+    async function runServerInference(modelKey, includeGradcam) {
+      const dataUrl = captureCanvas.toDataURL("image/jpeg", 0.72);
+      const t0 = performance.now();
+      try {
+        const resp = await fetch("/predict_frame", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: dataUrl,
+            model_name: modelKey,
+            conf: 0.30,
+            include_gradcam: includeGradcam
+          })
+        });
+        const data = await resp.json();
+        const rttMs = performance.now() - t0;
+        if (data.status === "success") {
+          renderPredictionResult(data, rttMs);
+        }
+      } catch (err) {
+        console.error("Predict error:", err);
+        document.getElementById("fpsHud").innerText = "⚠️ Mất kết nối tới Server...";
+      }
+    }
+
+    async function runOnDeviceInference(modelKey, w, h) {
+      const t0 = performance.now();
+      const off = document.createElement("canvas");
+      off.width = 224;
+      off.height = 224;
+      const octx = off.getContext("2d");
+      octx.drawImage(captureCanvas, 0, 0, 224, 224);
+      const imgData = octx.getImageData(0, 0, 224, 224).data;
+
+      const mean = [0.485, 0.456, 0.406];
+      const std = [0.229, 0.224, 0.225];
+      const floatData = new Float32Array(3 * 224 * 224);
+      for (let i = 0; i < 224 * 224; i++) {
+        const r = imgData[i * 4] / 255.0;
+        const g = imgData[i * 4 + 1] / 255.0;
+        const b = imgData[i * 4 + 2] / 255.0;
+        floatData[i] = (r - mean[0]) / std[0];
+        floatData[224 * 224 + i] = (g - mean[1]) / std[1];
+        floatData[2 * 224 * 224 + i] = (b - mean[2]) / std[2];
+      }
+
+      const inputTensor = new ort.Tensor("float32", floatData, [1, 3, 224, 224]);
+      const feeds = { input_image: inputTensor };
+      const results = await ortSessions[modelKey].run(feeds);
+      const logits = results.class_probabilities.data;
+
+      let maxLogit = -Infinity;
+      for (let i = 0; i < logits.length; i++) if (logits[i] > maxLogit) maxLogit = logits[i];
+      let sumExp = 0;
+      const probs = [];
+      for (let i = 0; i < logits.length; i++) {
+        const e = Math.exp(logits[i] - maxLogit);
+        probs.push(e);
+        sumExp += e;
+      }
+      let bestIdx = 0;
+      for (let i = 0; i < probs.length; i++) {
+        probs[i] /= sumExp;
+        if (probs[i] > probs[bestIdx]) bestIdx = i;
+      }
+
+      const latMs = performance.now() - t0;
+      const predClass = CLASS_LIST[bestIdx];
+      const conf = probs[bestIdx];
+      const vInfo = VIET_DISEASE_MAP[predClass];
+
+      document.getElementById("imgOrig224").src = off.toDataURL("image/jpeg", 0.85);
+
+      const probsFormatted = CLASS_LIST.map((c, idx) => ({
+        class: c,
+        viet_name: VIET_DISEASE_MAP[c].name,
+        prob: probs[idx]
+      })).sort((a, b) => b.prob - a.prob);
+
+      renderPredictionResult({
+        status: "success",
+        pred_class: predClass,
+        viet_name: vInfo.name,
+        status_title: vInfo.status,
+        confidence: conf,
+        acc_percent: +(conf * 100).toFixed(1),
+        is_ood: conf < 0.30,
+        latency_ms: +latMs.toFixed(1),
+        fps: +(1000 / Math.max(latMs, 1)).toFixed(1),
+        treatment: vInfo.advice,
+        severity_color: vInfo.color,
+        probs: probsFormatted,
+        detections: [{
+          box_norm: [0.12, 0.12, 0.88, 0.88],
+          name: vInfo.name,
+          conf: conf
+        }]
+      }, latMs);
+    }
+
+    function renderPredictionResult(data, rttMs) {
+      const confPct = (data.confidence * 100).toFixed(1);
+      const fpsVal = data.fps || (1000 / Math.max(rttMs, 1)).toFixed(1);
+      document.getElementById("hdrLatency").innerText = `${data.latency_ms} ms`;
+      document.getElementById("fpsHud").innerText = `⚡ ${fpsVal} FPS | Latency: ${data.latency_ms}ms | Acc: ${confPct}%`;
+
+      if (data.model_info) {
+        document.getElementById("hdrTestAcc").innerText = `${data.model_info.test_top1_accuracy}%`;
+        document.getElementById("hdrTestF1").innerText = `${data.model_info.test_macro_f1}`;
+      }
+
+      const diagCard = document.getElementById("diagCard");
+      const badge = document.getElementById("liveAccBadge");
+      const col = data.severity_color === "green" ? "#10b981" : (data.severity_color === "orange" ? "#f59e0b" : "#ef4444");
+
+      diagCard.style.borderColor = col;
+      document.getElementById("diseaseName").innerText = data.status_title;
+      document.getElementById("diseaseSub").innerText = `Nhận diện: ${data.viet_name} (${data.pred_class}) — Độ chính xác (Acc): ${confPct}%`;
+      badge.innerText = `${confPct}%`;
+      badge.style.borderColor = col;
+      badge.style.color = col;
+
+      document.getElementById("dssContent").innerText = data.treatment || "";
+
+      if (data.input_224_b64) {
+        document.getElementById("imgOrig224").src = "data:image/jpeg;base64," + data.input_224_b64;
+      }
+      if (data.gradcam_b64) {
+        document.getElementById("imgGradCam").src = "data:image/jpeg;base64," + data.gradcam_b64;
+      }
+      if (data.gradcampp_b64) {
+        document.getElementById("imgGradCamPP").src = "data:image/jpeg;base64," + data.gradcampp_b64;
+      }
+
+      drawBoundingBoxes(data.detections || [], data.is_ood, data.severity_color);
+
+      if (data.probs) {
+        const container = document.getElementById("probBarsContainer");
+        container.innerHTML = data.probs.map(item => {
+          const pct = (item.prob * 100).toFixed(1);
+          return `
+            <div class="prob-row">
+              <div class="prob-label">
+                <span>${item.viet_name} <small style="color:#64748b">(${item.class})</small></span>
+                <span>${pct}%</span>
+              </div>
+              <div class="prob-track">
+                <div class="prob-fill" style="width:${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function drawBoundingBoxes(detections, isOod, severityColor) {
+      const cw = overlayCanvas.width;
+      const ch = overlayCanvas.height;
+      overlayCtx.clearRect(0, 0, cw, ch);
+
+      const strokeCol = severityColor === "green" ? "#10b981" : (severityColor === "orange" ? "#f59e0b" : "#ef4444");
+
+      detections.forEach(det => {
+        const [nx1, ny1, nx2, ny2] = det.box_norm;
+        const x = nx1 * cw;
+        const y = ny1 * ch;
+        const w = (nx2 - nx1) * cw;
+        const h = (ny2 - ny1) * ch;
+
+        overlayCtx.strokeStyle = strokeCol;
+        overlayCtx.lineWidth = 3.5;
+        overlayCtx.strokeRect(x, y, w, h);
+
+        const label = `${det.name} — ${(det.conf * 100).toFixed(1)}%`;
+        overlayCtx.font = "bold 16px -apple-system, Segoe UI, sans-serif";
+        const textWidth = overlayCtx.measureText(label).width;
+        const padX = 10;
+        const boxH = 28;
+        const lblY = Math.max(0, y - boxH - 4);
+
+        overlayCtx.fillStyle = strokeCol;
+        overlayCtx.fillRect(x, lblY, textWidth + padX * 2, boxH);
+
+        overlayCtx.fillStyle = "#090d16";
+        overlayCtx.fillText(label, x + padX, lblY + 19);
+      });
+    }
+
+    updateModelHeaderUI();
+    startCamera();
+  </script>
+</body>
+</html>

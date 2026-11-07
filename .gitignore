@@ -1,6 +1,7 @@
-# Dữ liệu ảnh lớn (GitHub giới hạn file < 100MB)
-data/raw/
-data/processed/
+# Dữ liệu ảnh lớn (Tránh commit hàng chục nghìn file ảnh lên GitHub)
+data/
+data cũ/
+packaged_exports/
 *.zip
 plant_disease_colab.zip
 trained_weights_and_results.zip
@@ -17,12 +18,23 @@ venv/
 env/
 .env
 
-# Checkpoint model lớn
+# File chứng chỉ SSL cục bộ
+*.pem
+*.key
+weights/lan_cert.pem
+weights/lan_key.pem
+
+# Checkpoint trung gian
 weights/checkpoints/
-*.pth
+
+# Ngoại lệ: giữ lại trọng số tốt nhất và mô hình ONNX để chạy app trực tiếp
+!weights/*_best.pth
+!weights/*.onnx
+!weights/best_model_info.json
+!weights/*.json
+!weights/*.png
 !weights/.gitkeep
 
 # OS files
 .DS_Store
 Thumbs.db
-

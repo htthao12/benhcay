@@ -1,0 +1,31 @@
+﻿======================================================================
+BÁO CÁO ĐÁNH GIÁ MÔ HÌNH TRÊN TẬP TEST: DSCNet (Compact Depthwise Separable)
+======================================================================
+- Best Epoch (Validation): 87
+- Tổng số tham số (Trainable Params): 53,055
+- Độ phức tạp tính toán: 57.46 MFLOPs | 26.76 MMACs
+- Dung lượng Checkpoint: 0.72 MB
+- Train Loss (Best Epoch): 0.4891 | Train Accuracy: 98.88%
+- Val Loss (Best Epoch):   0.4817 | Val Accuracy:   98.86% | Val Macro-F1: 0.9886
+- Test Loss:               0.5034
+- Test Top-1 Accuracy:     97.79%
+- Test Top-3 Accuracy:     99.93%
+- Test Macro-F1 Score:     0.9779 (Precision: 0.9784, Recall: 0.9779)
+- Test Weighted-F1 Score:  0.9779 (Precision: 0.9784, Recall: 0.9779)
+- CPU Latency (Batch=1):   1.85 ms (541.1 FPS)
+- CUDA Latency (Batch=1):  0.66 ms (1513.5 FPS)
+
+CHI TIẾT TỪNG LỚP BỆNH:
+                precision    recall  f1-score   support
+
+   Anthracnose     0.9948    0.9500    0.9719       200
+        Aphids     0.9797    0.9650    0.9723       200
+       Healthy     0.9333    0.9800    0.9561       200
+Powdery_Mildew     0.9950    1.0000    0.9975       200
+          Rust     0.9900    0.9950    0.9925       200
+Scorch_Sunburn     0.9559    0.9750    0.9653       200
+Yellowing_Wilt     1.0000    0.9800    0.9899       200
+
+      accuracy                         0.9779      1400
+     macro avg     0.9784    0.9779    0.9779      1400
+  weighted avg     0.9784    0.9779    0.9779      1400

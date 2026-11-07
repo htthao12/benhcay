@@ -1,0 +1,31 @@
+﻿======================================================================
+BÁO CÁO ĐÁNH GIÁ MÔ HÌNH TRÊN TẬP TEST: SE-ResNet-18 (Channel Attention)
+======================================================================
+- Best Epoch (Validation): 61
+- Tổng số tham số (Trainable Params): 128,599
+- Độ phức tạp tính toán: 106.65 MFLOPs | 51.79 MMACs
+- Dung lượng Checkpoint: 1.63 MB
+- Train Loss (Best Epoch): 0.5094 | Train Accuracy: 97.86%
+- Val Loss (Best Epoch):   0.4817 | Val Accuracy:   98.79% | Val Macro-F1: 0.9879
+- Test Loss:               0.4978
+- Test Top-1 Accuracy:     98.00%
+- Test Top-3 Accuracy:     99.71%
+- Test Macro-F1 Score:     0.9800 (Precision: 0.9801, Recall: 0.9800)
+- Test Weighted-F1 Score:  0.9800 (Precision: 0.9801, Recall: 0.9800)
+- CPU Latency (Batch=1):   3.23 ms (309.2 FPS)
+- CUDA Latency (Batch=1):  1.22 ms (820.4 FPS)
+
+CHI TIẾT TỪNG LỚP BỆNH:
+                precision    recall  f1-score   support
+
+   Anthracnose     0.9698    0.9650    0.9674       200
+        Aphids     1.0000    0.9700    0.9848       200
+       Healthy     0.9502    0.9550    0.9526       200
+Powdery_Mildew     0.9852    1.0000    0.9926       200
+          Rust     0.9852    1.0000    0.9926       200
+Scorch_Sunburn     0.9755    0.9950    0.9851       200
+Yellowing_Wilt     0.9949    0.9750    0.9848       200
+
+      accuracy                         0.9800      1400
+     macro avg     0.9801    0.9800    0.9800      1400
+  weighted avg     0.9801    0.9800    0.9800      1400

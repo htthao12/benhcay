@@ -1,0 +1,31 @@
+﻿======================================================================
+BÁO CÁO ĐÁNH GIÁ MÔ HÌNH TRÊN TẬP TEST: ResNet-18 (Compact Bottleneck 1x1)
+======================================================================
+- Best Epoch (Validation): 71
+- Tổng số tham số (Trainable Params): 120,279
+- Độ phức tạp tính toán: 106.64 MFLOPs | 51.78 MMACs
+- Dung lượng Checkpoint: 1.51 MB
+- Train Loss (Best Epoch): 0.5247 | Train Accuracy: 97.72%
+- Val Loss (Best Epoch):   0.5023 | Val Accuracy:   98.79% | Val Macro-F1: 0.9878
+- Test Loss:               0.5072
+- Test Top-1 Accuracy:     98.07%
+- Test Top-3 Accuracy:     99.71%
+- Test Macro-F1 Score:     0.9807 (Precision: 0.9809, Recall: 0.9807)
+- Test Weighted-F1 Score:  0.9807 (Precision: 0.9809, Recall: 0.9807)
+- CPU Latency (Batch=1):   3.15 ms (317.4 FPS)
+- CUDA Latency (Batch=1):  0.87 ms (1148.3 FPS)
+
+CHI TIẾT TỪNG LỚP BỆNH:
+                precision    recall  f1-score   support
+
+   Anthracnose     0.9548    0.9500    0.9524       200
+        Aphids     1.0000    0.9700    0.9848       200
+       Healthy     0.9614    0.9950    0.9779       200
+Powdery_Mildew     0.9852    1.0000    0.9926       200
+          Rust     0.9804    1.0000    0.9901       200
+Scorch_Sunburn     0.9848    0.9700    0.9773       200
+Yellowing_Wilt     1.0000    0.9800    0.9899       200
+
+      accuracy                         0.9807      1400
+     macro avg     0.9809    0.9807    0.9807      1400
+  weighted avg     0.9809    0.9807    0.9807      1400

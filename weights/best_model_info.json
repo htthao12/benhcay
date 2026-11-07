@@ -1,0 +1,18 @@
+{
+  "best_model": "resnet18",
+  "best_model_display_name": "ResNet-18 (Compact Bottleneck 1x1)",
+  "best_checkpoint_file": "resnet18_best.pth",
+  "test_macro_f1": 0.9807,
+  "test_top1_accuracy": 98.07,
+  "test_top3_accuracy": 99.71,
+  "cpu_latency_ms": 3.15,
+  "cpu_fps": 317.4,
+  "trainable_parameters": 120279,
+  "flops_m": 106.64,
+  "macs_m": 51.78,
+  "ranking": [
+    "resnet18",
+    "se_resnet18",
+    "dscnet"
+  ]
+}

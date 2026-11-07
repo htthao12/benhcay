@@ -1,0 +1,10 @@
+﻿Class,Precision,Recall,F1_Score,Class_Accuracy (%),Support
+Anthracnose,0.9698,0.965,0.9674,96.5,200
+Aphids,1.0,0.97,0.9848,97.0,200
+Healthy,0.9502,0.955,0.9526,95.5,200
+Powdery_Mildew,0.9852,1.0,0.9926,100.0,200
+Rust,0.9852,1.0,0.9926,100.0,200
+Scorch_Sunburn,0.9755,0.995,0.9851,99.5,200
+Yellowing_Wilt,0.9949,0.975,0.9848,97.5,200
+MACRO_AVERAGE,0.9801,0.98,0.98,98.0,1400
+WEIGHTED_AVERAGE,0.9801,0.98,0.98,98.0,1400

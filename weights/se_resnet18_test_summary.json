@@ -1,0 +1,162 @@
+{
+  "model_key": "se_resnet18",
+  "model_name": "se_resnet18",
+  "model_display_name": "SE-ResNet-18 (Channel Attention)",
+  "best_epoch": 61,
+  "trainable_parameters": 128599,
+  "flops_m": 106.65,
+  "macs_m": 51.79,
+  "checkpoint_size_mb": 1.632,
+  "train_loss": 0.5094,
+  "train_accuracy": 97.86,
+  "val_loss": 0.4817,
+  "val_accuracy": 98.79,
+  "val_macro_f1": 0.9879,
+  "test_loss": 0.4978,
+  "test_top1_accuracy": 98.0,
+  "test_top3_accuracy": 99.71,
+  "test_macro_f1": 0.98,
+  "test_weighted_f1": 0.98,
+  "test_macro_precision": 0.9801,
+  "test_macro_recall": 0.98,
+  "test_weighted_precision": 0.9801,
+  "test_weighted_recall": 0.98,
+  "cpu_latency_ms": 3.23,
+  "cpu_fps": 309.2,
+  "cuda_latency_ms": 1.22,
+  "cuda_fps": 820.4,
+  "gpu_latency_ms": 1.22,
+  "gpu_fps": 820.4,
+  "per_class_metrics": [
+    {
+      "Class": "Anthracnose",
+      "Precision": 0.9698,
+      "Recall": 0.965,
+      "F1_Score": 0.9674,
+      "Class_Accuracy (%)": 96.5,
+      "Support": 200
+    },
+    {
+      "Class": "Aphids",
+      "Precision": 1.0,
+      "Recall": 0.97,
+      "F1_Score": 0.9848,
+      "Class_Accuracy (%)": 97.0,
+      "Support": 200
+    },
+    {
+      "Class": "Healthy",
+      "Precision": 0.9502,
+      "Recall": 0.955,
+      "F1_Score": 0.9526,
+      "Class_Accuracy (%)": 95.5,
+      "Support": 200
+    },
+    {
+      "Class": "Powdery_Mildew",
+      "Precision": 0.9852,
+      "Recall": 1.0,
+      "F1_Score": 0.9926,
+      "Class_Accuracy (%)": 100.0,
+      "Support": 200
+    },
+    {
+      "Class": "Rust",
+      "Precision": 0.9852,
+      "Recall": 1.0,
+      "F1_Score": 0.9926,
+      "Class_Accuracy (%)": 100.0,
+      "Support": 200
+    },
+    {
+      "Class": "Scorch_Sunburn",
+      "Precision": 0.9755,
+      "Recall": 0.995,
+      "F1_Score": 0.9851,
+      "Class_Accuracy (%)": 99.5,
+      "Support": 200
+    },
+    {
+      "Class": "Yellowing_Wilt",
+      "Precision": 0.9949,
+      "Recall": 0.975,
+      "F1_Score": 0.9848,
+      "Class_Accuracy (%)": 97.5,
+      "Support": 200
+    }
+  ],
+  "confusion_matrix": [
+    [
+      193,
+      0,
+      4,
+      0,
+      0,
+      2,
+      1
+    ],
+    [
+      0,
+      194,
+      6,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      191,
+      3,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      200,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      200,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      199,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      0,
+      3,
+      195
+    ]
+  ],
+  "classes": [
+    "Anthracnose",
+    "Aphids",
+    "Healthy",
+    "Powdery_Mildew",
+    "Rust",
+    "Scorch_Sunburn",
+    "Yellowing_Wilt"
+  ]
+}

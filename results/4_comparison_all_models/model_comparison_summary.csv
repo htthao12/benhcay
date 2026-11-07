@@ -1,0 +1,4 @@
+﻿Rank,Model_Key,Model_Name,Parameters,FLOPs_M,MACs_M,Size_MB,Best_Epoch,Val_Acc (%),Val_Macro_F1,Test_Top1_Acc (%),Test_Top3_Acc (%),Test_Macro_F1,Test_Weighted_F1,Test_Macro_Precision,Test_Macro_Recall,CPU_Latency (ms),CPU_FPS,Selected_For_Realtime_App
+1,RESNET18,ResNet-18 (Compact Bottleneck 1x1),120279,106.64,51.78,1.515,71,98.79,0.9878,98.07,99.71,0.9807,0.9807,0.9809,0.9807,3.15,317.4,YES (BEST MODEL)
+2,SE_RESNET18,SE-ResNet-18 (Channel Attention),128599,106.65,51.79,1.632,61,98.79,0.9879,98.0,99.71,0.98,0.98,0.9801,0.98,3.23,309.2,NO
+3,DSCNET,DSCNet (Compact Depthwise Separable),53055,57.46,26.76,0.717,87,98.86,0.9886,97.79,99.93,0.9779,0.9779,0.9784,0.9779,1.85,541.1,NO
