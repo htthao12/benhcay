@@ -1,5 +1,4 @@
-# Dữ liệu ảnh lớn (Tránh commit hàng chục nghìn file ảnh lên GitHub)
-data/
+# Dữ liệu ảnh cũ / phụ không đưa lên GitHub
 data cũ/
 packaged_exports/
 *.zip
