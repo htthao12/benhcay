@@ -1,5 +1,6 @@
-# Hệ Thống Nhận Diện Bệnh Cây Cảnh Thời Gian Thực (Real-Time Ornamental Plant Disease Diagnosis)
-> **Đồ án môn học:** Học sâu nâng cao (Advanced Deep Learning)  
+# REAL-TIME PLANT DISEASE DIAGNOSIS (Chẩn Đoán Bệnh Thực Vật Thời Gian Thực)
+> **Đề tài:** REAL-TIME PLANT DISEASE DIAGNOSIS  
+> **Học phần:** Học sâu nâng cao (Advanced Deep Learning)  
 > **Hạng mục:** Báo cáo Đồ án Cuối kỳ & Kết thúc học phần (Final Course Project)  
 > **Trường:** Đại học Phenikaa (Phenikaa University)  
 > **Tác giả:** Hoàng Thị Thảo (MSV: 22011077)  
@@ -8,16 +9,16 @@
 ---
 
 ## 📌 Giới Thiệu Đề Tài
-Đề tài nghiên cứu và phát triển giải pháp thị giác máy tính ứng dụng học sâu (Deep Learning) nhằm **chẩn đoán bệnh trên lá cây cảnh theo thời gian thực (Real-time)** với độ chính xác cao và độ trễ thấp, tối ưu hóa để triển khai trên các thiết bị rìa (Edge Devices, Mobile, WebAssembly/ONNX).
+Đề tài nghiên cứu và phát triển giải pháp thị giác máy tính ứng dụng học sâu (Deep Learning) nhằm **chẩn đoán bệnh thực vật theo thời gian thực (Real-Time Plant Disease Diagnosis)** với độ chính xác cao và độ trễ thấp, tối ưu hóa để triển khai trên các thiết bị rìa (Edge Devices, Mobile, WebAssembly/ONNX).
 
-Hệ thống phân loại chính xác **7 lớp trạng thái lá cây cảnh**:
+Hệ thống tập trung phân loại chính xác **7 trạng thái lá cây và bệnh thực vật phổ biến**:
 1. 🌿 **Healthy** (Lá khỏe mạnh)
 2. 🍂 **Anthracnose** (Bệnh Thán thư)
-3. 🐛 **Aphids** (Rệp sáp / Sâu hại chích hút)
+3. 🐛 **Aphids** (Rệp muội / Sâu hại chích hút)
 4. ❄️ **Powdery_Mildew** (Bệnh Phấn trắng)
 5. 🟤 **Rust** (Bệnh Rỉ sắt)
-6. ☀️ **Scorch_Sunburn** (Cháy nắng / Khô mép lá)
-7. 🍂 **Yellowing_Wilt** (Vàng lá / Héo rũ / Úng rễ)
+6. ☀️ **Scorch_Sunburn** (Cháy lá / Khô mép lá)
+7. 🍂 **Yellowing_Wilt** (Vàng lá / Héo rũ)
 
 ---
 
