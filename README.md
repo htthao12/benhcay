@@ -1,5 +1,6 @@
 # Hệ Thống Nhận Diện Bệnh Cây Cảnh Thời Gian Thực (Real-Time Ornamental Plant Disease Diagnosis)
 > **Đồ án môn học:** Học sâu nâng cao (Advanced Deep Learning)  
+> **Hạng mục:** Báo cáo Đồ án Cuối kỳ & Kết thúc học phần (Final Course Project)  
 > **Trường:** Đại học Phenikaa (Phenikaa University)  
 > **Tác giả:** Hoàng Thị Thảo (MSV: 22011077)  
 > **Repository:** [https://github.com/htthao12/benhcay](https://github.com/htthao12/benhcay)
